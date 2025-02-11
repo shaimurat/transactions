@@ -239,6 +239,7 @@ func main() {
 		AllowCredentials: true,          // Позволяет передавать куки и заголовки авторизации
 		MaxAge:           12 * time.Hour,
 	}))
+	r.Static("/", "./public") // Указываем папку с HTML-файлами
 
 	r.POST("/api/transactions", handleTransaction)
 

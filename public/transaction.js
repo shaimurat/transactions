@@ -51,7 +51,7 @@ async function submitPayment() {
             document.getElementById("paymentStatus").innerText = "Payment successful!";
             // Перенаправление на страницу с подтверждением
             setTimeout(() => {
-                window.location.href = `https://transactions-production-e9c4.up.railway.app/confirmation.html?id=${transactionId}`;
+                window.location.href = `../confirmation.html`;
             }, 2000);
         } else {
             document.getElementById("paymentStatus").innerText = "Payment failed. Please check your details.";
