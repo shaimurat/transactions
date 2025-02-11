@@ -249,17 +249,18 @@ func main() {
 
 	// Получение информации о транзакции по ID
 	r.GET("/api/transaction/:id", getTransaction)
-	r.StaticFS("/static", http.Dir("./static"))
 
 	// Serve the transaction page correctly
+	r.Static("/static", "./static") // Serve all static files
+
 	r.GET("/transaction", func(c *gin.Context) {
-		_, err := os.Stat("static/transaction.html")
-		if os.IsNotExist(err) {
+		filePath := "static/transaction.html"
+		if _, err := os.Stat(filePath); os.IsNotExist(err) {
 			log.Println("transaction.html not found!")
 			c.JSON(http.StatusNotFound, gin.H{"error": "transaction.html not found"})
 			return
 		}
-		c.File("static/transaction.html")
+		c.File(filePath)
 	})
 
 	// Подтверждение оплаты (изменяет статус на "ended" или "failed")
