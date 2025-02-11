@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jung-kurt/gofpdf"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -235,6 +236,14 @@ func main() {
 	r := gin.Default()
 
 	// Enable CORS
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"}, // Разрешает запросы со всех источников
+		AllowMethods:     []string{"GET", "POST", "OPTIONS", "PUT", "DELETE"},
+		AllowHeaders:     []string{"*"}, // Разрешает все заголовки
+		ExposeHeaders:    []string{"*"}, // Позволяет клиенту видеть все заголовки ответа
+		AllowCredentials: true,          // Позволяет передавать куки и заголовки авторизации
+		MaxAge:           12 * time.Hour,
+	}))
 
 	r.POST("/api/transactions", handleTransaction)
 
