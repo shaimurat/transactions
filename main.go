@@ -250,7 +250,7 @@ func main() {
 	// Получение информации о транзакции по ID
 	r.GET("/api/transaction/:id", getTransaction)
 	r.Static("/static", "./static")
-	r.GET("/transaction", func(c *gin.Context) {
+	r.GET("/transaction/:id", func(c *gin.Context) {
 		c.File("./static/transaction.html")
 	})
 
