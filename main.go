@@ -252,7 +252,7 @@ func main() {
 	r.StaticFS("/static", http.Dir("./static"))
 
 	// Serve the transaction page correctly
-	r.GET("/transaction", func(c *gin.Context) {
+	r.GET("/transaction/:id", func(c *gin.Context) {
 		c.File("./static/transaction.html")
 	})
 
