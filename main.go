@@ -173,14 +173,9 @@ func sendReceiptEmail(transaction Transaction) {
 func getTransaction(c *gin.Context) {
 	transactionID := c.Param("id")
 
-	var transaction Transaction
-	err := transactionCollection.FindOne(context.TODO(), map[string]interface{}{"_id": transactionID}).Decode(&transaction)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"success": false, "error": "Transaction not found"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"success": true, "transaction": transaction})
+	// Перенаправляем пользователя на страницу transaction.html с transactionId в URL
+	redirectURL := fmt.Sprintf("/transaction.html?id=%s", transactionID)
+	c.Redirect(http.StatusFound, redirectURL)
 }
 
 // Подтверждение платежа (обновление статуса)
