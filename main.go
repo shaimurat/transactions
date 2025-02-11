@@ -290,10 +290,10 @@ func getUserTransactions(c *gin.Context) {
 	var transactions []Transaction
 	var cursor *mongo.Cursor
 	var err error
-	if status == "ended" {
-		cursor, err = transactionCollection.Find(context.TODO(), bson.M{"customer.email": email, "status": "ended"})
-	} else {
+	if status == "in process" {
 		cursor, err = transactionCollection.Find(context.TODO(), bson.M{"customer.email": email, "status": "in process"})
+	} else {
+		cursor, err = transactionCollection.Find(context.TODO(), bson.M{"customer.email": email})
 	}
 	if err != nil {
 		log.Println("Error fetching transactions:", err)
