@@ -249,6 +249,10 @@ func main() {
 
 	// Получение информации о транзакции по ID
 	r.GET("/api/transaction/:id", getTransaction)
+	r.Static("/static", "./static")
+	r.GET("/transaction", func(c *gin.Context) {
+		c.File("./static/transaction.html")
+	})
 
 	// Подтверждение оплаты (изменяет статус на "ended" или "failed")
 	r.POST("/api/confirm-payment", confirmPayment)
