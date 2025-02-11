@@ -68,7 +68,10 @@ async function submitPayment() {
         const result = await response.json();
 
         if (result.success) {
-            document.getElementById("paymentStatus").innerText = "Payment successful!";
+            localStorage.setItem("paymentSuccess", "Your payment was successful!");
+
+            // Redirect user to pokemonsPage
+            window.location.href = "https://awesomeproject1-production.up.railway.app/pokemonsPage";
         } else {
             document.getElementById("paymentStatus").innerText = result.error;
         }
