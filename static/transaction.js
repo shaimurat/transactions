@@ -68,11 +68,7 @@ async function submitPayment() {
         const result = await response.json();
 
         if (result.success) {
-            localStorage.setItem("paymentSuccess", "Your payment was successful!");
-
-            console.log(("Stored in localStorage:" + localStorage.getItem("paymentSuccess")))
-            setTimeout(() => {
-            window.location.href = "https://awesomeproject1-production.up.railway.app/pokemonsPage";}, 500);
+            window.location.href = "https://awesomeproject1-production.up.railway.app/pokemonsPage?success=true";
         } else {
             document.getElementById("paymentStatus").innerText = result.error;
         }
