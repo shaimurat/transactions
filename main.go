@@ -8,6 +8,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jung-kurt/gofpdf"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"gopkg.in/gomail.v2"
@@ -277,7 +278,39 @@ func confirmPayment(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"success": paymentSuccess})
 }
+func getUserEndedTransactions(c *gin.Context) {
+	email := c.Query("email")
+	if email == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Email is required"})
+		return
+	}
 
+	// Query transactions by email and status "ended"
+	var transactions []Transaction
+	cursor, err := transactionCollection.Find(context.TODO(), bson.M{"customer.email": email, "status": "ended"})
+	if err != nil {
+		log.Println("Error fetching transactions:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Database error"})
+		return
+	}
+	defer cursor.Close(context.TODO())
+
+	for cursor.Next(context.TODO()) {
+		var transaction Transaction
+		if err := cursor.Decode(&transaction); err != nil {
+			log.Println("Error decoding transaction:", err)
+			continue
+		}
+		transactions = append(transactions, transaction)
+	}
+
+	if len(transactions) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "error": "No transactions found for this user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "transactions": transactions})
+}
 func main() {
 	connectDB()
 
@@ -300,7 +333,7 @@ func main() {
 
 	// Serve the transaction page correctly
 	r.Static("/static", "./static") // Serve all static files
-
+	r.GET("/api/endedTransactions", getUserEndedTransactions)
 	r.GET("/transaction/", func(c *gin.Context) {
 		filePath := "static/transaction.html"
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
