@@ -237,9 +237,10 @@ func main() {
 
 	// Enable CORS
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"}, // Change this to your frontend domain in production
+		AllowOrigins:     []string{"https://awesomeproject1-production.up.railway.app"}, // Разрешаем запросы с покемон-сайта
 		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
 
