@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jung-kurt/gofpdf"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -236,16 +235,7 @@ func main() {
 	r := gin.Default()
 
 	// Enable CORS
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://awesomeproject1-production.up.railway.app"}, // Разрешаем запросы с покемон-сайта
-		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
 
-	r.POST("/api/transactions", handleTransaction)
 	r.POST("/api/transactions", handleTransaction)
 
 	// Получение информации о транзакции по ID
