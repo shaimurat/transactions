@@ -70,7 +70,7 @@ async function submitPayment() {
         if (result.success) {
             document.getElementById("paymentStatus").innerText = "Payment successful!";
         } else {
-            document.getElementById("paymentStatus").innerText = "Payment failed. Please check your details.";
+            document.getElementById("paymentStatus").innerText = result.error;
         }
     } catch (error) {
         document.getElementById("paymentStatus").innerText = "Error processing payment.";
