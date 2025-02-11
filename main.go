@@ -239,9 +239,10 @@ func main() {
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"https://awesomeproject1-production.up.railway.app"}, // Разрешаем запросы с покемон-сайта
 		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
 	}))
 
 	r.POST("/api/transactions", handleTransaction)
