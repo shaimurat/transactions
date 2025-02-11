@@ -318,6 +318,37 @@ func getUserTransactions(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "transactions": transactions})
 }
+func cancelTransaction(c *gin.Context) {
+	transactionID := c.Query("id")
+
+	// Find the transaction
+	var transaction Transaction
+	err := transactionCollection.FindOne(context.TODO(), map[string]interface{}{"_id": transactionID}).Decode(&transaction)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "error": "Transaction not found"})
+		return
+	}
+
+	// Check if transaction is already cancelled or completed
+	if transaction.Status != "in process" {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Transaction cannot be cancelled"})
+		return
+	}
+
+	// Update the transaction status to "cancelled"
+	_, err = transactionCollection.UpdateOne(
+		context.TODO(),
+		map[string]interface{}{"_id": transactionID},
+		map[string]interface{}{"$set": map[string]interface{}{"status": "cancelled"}},
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Database update failed"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Transaction cancelled successfully"})
+}
+
 func main() {
 	connectDB()
 
@@ -337,7 +368,7 @@ func main() {
 
 	// Получение информации о транзакции по ID
 	r.GET("/api/transaction/:id", getTransaction)
-
+	r.GET("/cancelTransaction", cancelTransaction)
 	// Serve the transaction page correctly
 	r.Static("/static", "./static") // Serve all static files
 	r.GET("/api/userTransactions", getUserTransactions)
