@@ -253,7 +253,13 @@ func main() {
 
 	// Serve the transaction page correctly
 	r.GET("/transaction", func(c *gin.Context) {
-		c.File("./static/transaction.html")
+		_, err := os.Stat("static/transaction.html")
+		if os.IsNotExist(err) {
+			log.Println("transaction.html not found!")
+			c.JSON(http.StatusNotFound, gin.H{"error": "transaction.html not found"})
+			return
+		}
+		c.File("static/transaction.html")
 	})
 
 	// Подтверждение оплаты (изменяет статус на "ended" или "failed")
