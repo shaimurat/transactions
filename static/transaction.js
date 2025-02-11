@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("transactionId").innerText = transactionId;
 
-    // Запрашиваем данные транзакции у сервера
+    // Fetch transaction details
     try {
         const response = await fetch(`https://transactions-production-e9c4.up.railway.app/api/transaction/${transactionId}`);
         const transaction = await response.json();
@@ -26,8 +26,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
+// Apply input formatting
+document.getElementById("cardNumber").addEventListener("input", function (e) {
+    let value = e.target.value.replace(/\D/g, ""); // Remove non-digits
+    value = value.replace(/(\d{4})/g, "$1 ").trim(); // Add space every 4 digits
+    e.target.value = value;
+});
 
-// Функция отправки данных карты на сервер
+document.getElementById("expirationDate").addEventListener("input", function (e) {
+    let value = e.target.value.replace(/\D/g, ""); // Remove non-digits
+    if (value.length >= 2) {
+        value = value.substring(0, 2) + "/" + value.substring(2, 4);
+    }
+    e.target.value = value.substring(0, 5); // Limit to MM/YY
+});
+
+document.getElementById("cvv").addEventListener("input", function (e) {
+    e.target.value = e.target.value.replace(/\D/g, "").substring(0, 4); // Only digits, max 4
+});
+
+// Function to submit payment
 async function submitPayment() {
     const transactionId = document.getElementById("transactionId").innerText;
 

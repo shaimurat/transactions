@@ -18,19 +18,19 @@
 
     <h3>Enter Payment Details</h3>
 
-    <label>Card Number:</label>
-    <input id="cardNumber" type="text" maxlength="19" placeholder="1234 5678 9012 3456" required>
+    <label for="cardNumber">Card Number:</label>
+    <input id="cardNumber" type="text" inputmode="numeric" maxlength="19" placeholder="1234 5678 9012 3456" required>
 
-    <label>Expiration Date:</label>
-    <input id="expirationDate" type="text" maxlength="5" placeholder="MM/YY" required>
+    <label for="expirationDate">Expiration Date:</label>
+    <input id="expirationDate" type="text" inputmode="numeric" maxlength="5" placeholder="MM/YY" required>
 
-    <label>CVV:</label>
-    <input id="cvv" type="text" maxlength="4" placeholder="123" required>
+    <label for="cvv">CVV:</label>
+    <input id="cvv" type="text" inputmode="numeric" maxlength="4" placeholder="123" required>
 
-    <label>Name on Card:</label>
+    <label for="cardName">Name on Card:</label>
     <input id="cardName" type="text" placeholder="John Doe" required>
 
-    <label>Billing Address:</label>
+    <label for="billingAddress">Billing Address:</label>
     <input id="billingAddress" type="text" placeholder="123 Main Street" required>
 
     <button onclick="submitPayment()">Submit Payment</button>
