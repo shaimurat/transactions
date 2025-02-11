@@ -71,7 +71,8 @@ async function submitPayment() {
             localStorage.setItem("paymentSuccess", "Your payment was successful!");
 
             console.log(("Stored in localStorage:", localStorage.getItem("paymentSuccess")))
-            window.location.href = "https://awesomeproject1-production.up.railway.app/pokemonsPage";
+            setTimeout(() => {
+            window.location.href = "https://awesomeproject1-production.up.railway.app/pokemonsPage";}, 500);
         } else {
             document.getElementById("paymentStatus").innerText = result.error;
         }
