@@ -253,7 +253,7 @@ func main() {
 	// Serve the transaction page correctly
 	r.Static("/static", "./static") // Serve all static files
 
-	r.GET("/transaction", func(c *gin.Context) {
+	r.GET("/transaction/:id", func(c *gin.Context) {
 		filePath := "static/transaction.html"
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
 			log.Println("transaction.html not found!")
