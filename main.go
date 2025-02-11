@@ -278,8 +278,9 @@ func confirmPayment(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"success": paymentSuccess})
 }
-func getUserEndedTransactions(c *gin.Context) {
+func getUserTransactions(c *gin.Context) {
 	email := c.Query("email")
+	status := c.Query("status")
 	if email == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Email is required"})
 		return
@@ -287,7 +288,13 @@ func getUserEndedTransactions(c *gin.Context) {
 
 	// Query transactions by email and status "ended"
 	var transactions []Transaction
-	cursor, err := transactionCollection.Find(context.TODO(), bson.M{"customer.email": email, "status": "ended"})
+	var cursor *mongo.Cursor
+	var err error
+	if status == "ended" {
+		cursor, err = transactionCollection.Find(context.TODO(), bson.M{"customer.email": email, "status": "ended"})
+	} else {
+		cursor, err = transactionCollection.Find(context.TODO(), bson.M{"customer.email": email, "status": "in process"})
+	}
 	if err != nil {
 		log.Println("Error fetching transactions:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Database error"})
@@ -333,7 +340,7 @@ func main() {
 
 	// Serve the transaction page correctly
 	r.Static("/static", "./static") // Serve all static files
-	r.GET("/api/endedTransactions", getUserEndedTransactions)
+	r.GET("/api/userTransactions", getUserTransactions)
 	r.GET("/transaction/", func(c *gin.Context) {
 		filePath := "static/transaction.html"
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
