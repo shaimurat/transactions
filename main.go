@@ -14,6 +14,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -182,13 +183,48 @@ func getTransaction(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "transaction": transaction})
 }
+func isCardExpired(expirationDate string) (bool, error) {
+	// Ensure the format is MM/YY
+	if len(expirationDate) != 5 || expirationDate[2] != '/' {
+		return false, fmt.Errorf("invalid format")
+	}
+
+	// Extract month and year
+	month := expirationDate[:2]
+	year := expirationDate[3:]
+
+	// Convert to integers
+	expMonth, err := strconv.Atoi(month)
+	if err != nil || expMonth < 1 || expMonth > 12 {
+		return false, fmt.Errorf("invalid month")
+	}
+
+	expYear, err := strconv.Atoi(year)
+	if err != nil {
+		return false, fmt.Errorf("invalid year")
+	}
+
+	// Convert YY to YYYY (assuming 2000-2099 range)
+	currentYear := time.Now().Year() % 100 // Get last two digits of current year
+
+	if expYear < currentYear {
+		return true, nil // Expired
+	} else if expYear == currentYear {
+		currentMonth := int(time.Now().Month())
+		if expMonth < currentMonth {
+			return true, nil // Expired
+		}
+	}
+
+	return false, nil // Valid
+}
 
 // Подтверждение платежа (обновление статуса)
 func confirmPayment(c *gin.Context) {
 	var request struct {
 		TransactionID  string `json:"transactionId"`
 		CardNumber     string `json:"cardNumber"`
-		ExpirationDate string `json:"expirationDate"`
+		ExpirationDate string `json:"expirationDate"` // Format: MM/YY
 		CVV            string `json:"cvv"`
 		Name           string `json:"name"`
 		Address        string `json:"address"`
@@ -199,18 +235,30 @@ func confirmPayment(c *gin.Context) {
 		return
 	}
 
-	// Проверяем, есть ли такая транзакция
+	// Validate expiration date
+	expired, err := isCardExpired(request.ExpirationDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Invalid expiration date format. Use MM/YY."})
+		return
+	}
+
+	if expired {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Card is expired."})
+		return
+	}
+
+	// Check if transaction exists
 	var transaction Transaction
-	err := transactionCollection.FindOne(context.TODO(), map[string]interface{}{"_id": request.TransactionID}).Decode(&transaction)
+	err = transactionCollection.FindOne(context.TODO(), map[string]interface{}{"_id": request.TransactionID}).Decode(&transaction)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"success": false, "error": "Transaction not found"})
 		return
 	}
 
-	// Эмуляция платежа
+	// Simulate payment process
 	paymentSuccess := processPaymentMock()
 
-	// Обновление статуса
+	// Update transaction status
 	newStatus := "ended"
 	if !paymentSuccess {
 		newStatus = "failed"
