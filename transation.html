@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="transaction-container">
+    <h2>Complete Your Payment</h2>
+
+    <div id="transactionDetails">
+        <h3>Order Summary</h3>
+        <p><strong>Transaction ID:</strong> <span id="transactionId"></span></p>
+        <p><strong>Total Amount:</strong> $<span id="totalAmount"></span></p>
+    </div>
+
+    <h3>Enter Payment Details</h3>
+
+    <label>Card Number:</label>
+    <input id="cardNumber" type="text" maxlength="19" placeholder="1234 5678 9012 3456" required>
+
+    <label>Expiration Date:</label>
+    <input id="expirationDate" type="text" maxlength="5" placeholder="MM/YY" required>
+
+    <label>CVV:</label>
+    <input id="cvv" type="text" maxlength="4" placeholder="123" required>
+
+    <label>Name on Card:</label>
+    <input id="cardName" type="text" placeholder="John Doe" required>
+
+    <label>Billing Address:</label>
+    <input id="billingAddress" type="text" placeholder="123 Main Street" required>
+
+    <button onclick="submitPayment()">Submit Payment</button>
+
+    <p id="paymentStatus"></p>
+</div>
+
+<script src="transaction.js"></script>
+</body>
+</html>

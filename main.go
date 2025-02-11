@@ -52,11 +52,6 @@ type TransactionRequest struct {
 }
 
 // Generate unique transaction ID
-func generateTransactionID() string {
-	bytes := make([]byte, 8)
-	_, _ = rand.Read(bytes)
-	return hex.EncodeToString(bytes)
-}
 
 // Connect to MongoDB
 func connectDB() {
@@ -75,6 +70,14 @@ func connectDB() {
 }
 
 // Handle transaction request
+// Генерация уникального ID для транзакции
+func generateTransactionID() string {
+	bytes := make([]byte, 8)
+	_, _ = rand.Read(bytes)
+	return hex.EncodeToString(bytes) // Уникальный 16-символьный ID
+}
+
+// Обработка создания транзакции (первый шаг)
 func handleTransaction(c *gin.Context) {
 	var request TransactionRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -82,43 +85,31 @@ func handleTransaction(c *gin.Context) {
 		return
 	}
 
-	// Calculate total price
+	// Рассчитываем общую сумму
 	var totalPrice float64
 	for _, item := range request.CartItems {
 		totalPrice += item.Price
 	}
 
-	// Create transaction
+	// Создаем транзакцию со статусом "in process"
 	transaction := Transaction{
-		ID:         generateTransactionID(),
+		ID:         generateTransactionID(), // Сюда передается уникальный ID
 		CartItems:  request.CartItems,
 		Customer:   request.Customer,
-		Status:     "Pending Payment",
+		Status:     "in process",
 		TotalPrice: totalPrice,
 		CreatedAt:  time.Now(),
 	}
 
-	// Simulate payment (randomly succeed or fail)
-	paymentSuccess := processPaymentMock()
-
-	// Update transaction status
-	if paymentSuccess {
-		transaction.Status = "Paid"
-		generateReceiptPDF(transaction)
-		sendReceiptEmail(transaction)
-	} else {
-		transaction.Status = "Declined"
-	}
-
-	// Insert transaction into MongoDB
+	// Записываем в MongoDB
 	_, err := transactionCollection.InsertOne(context.TODO(), transaction)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
 		return
 	}
 
-	// Respond to the main server
-	c.JSON(http.StatusOK, gin.H{"success": paymentSuccess, "transaction": transaction})
+	// Отправляем обратно ID, чтобы фронтенд знал, куда перенаправлять пользователя
+	c.JSON(http.StatusOK, gin.H{"success": true, "transactionId": transaction.ID})
 }
 
 // Simulated payment function
@@ -177,6 +168,68 @@ func sendReceiptEmail(transaction Transaction) {
 		log.Println("Receipt emailed successfully")
 	}
 }
+
+// Получение информации о транзакции
+func getTransaction(c *gin.Context) {
+	transactionID := c.Param("id")
+
+	var transaction Transaction
+	err := transactionCollection.FindOne(context.TODO(), map[string]interface{}{"_id": transactionID}).Decode(&transaction)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "error": "Transaction not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "transaction": transaction})
+}
+
+// Подтверждение платежа (обновление статуса)
+func confirmPayment(c *gin.Context) {
+	var request struct {
+		TransactionID  string `json:"transactionId"`
+		CardNumber     string `json:"cardNumber"`
+		ExpirationDate string `json:"expirationDate"`
+		CVV            string `json:"cvv"`
+		Name           string `json:"name"`
+		Address        string `json:"address"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
+	// Проверяем, есть ли такая транзакция
+	var transaction Transaction
+	err := transactionCollection.FindOne(context.TODO(), map[string]interface{}{"_id": request.TransactionID}).Decode(&transaction)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "error": "Transaction not found"})
+		return
+	}
+
+	// Эмуляция платежа
+	paymentSuccess := processPaymentMock()
+
+	// Обновление статуса
+	newStatus := "ended"
+	if !paymentSuccess {
+		newStatus = "failed"
+	}
+
+	_, err = transactionCollection.UpdateOne(
+		context.TODO(),
+		map[string]interface{}{"_id": request.TransactionID},
+		map[string]interface{}{"$set": map[string]interface{}{"status": newStatus}},
+	)
+
+	if err == nil && paymentSuccess {
+		generateReceiptPDF(transaction)
+		sendReceiptEmail(transaction)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": paymentSuccess})
+}
+
 func main() {
 	connectDB()
 
@@ -191,7 +244,13 @@ func main() {
 	}))
 
 	r.POST("/api/transactions", handleTransaction)
+	r.POST("/api/transactions", handleTransaction)
 
+	// Получение информации о транзакции по ID
+	r.GET("/api/transaction/:id", getTransaction)
+
+	// Подтверждение оплаты (изменяет статус на "ended" или "failed")
+	r.POST("/api/confirm-payment", confirmPayment)
 	log.Println("Transaction service running on port 8081...")
 	r.Run(":8081")
 }
