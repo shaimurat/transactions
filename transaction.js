@@ -9,11 +9,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("transactionId").innerText = transactionId;
 
+    // Запрашиваем данные транзакции у сервера
     try {
-        const response = await fetch(`https://transactions-production-e9c4.up.railway.app/api/transaction-details/${transactionId}`);
+        const response = await fetch(`https://transactions-production-e9c4.up.railway.app/api/transaction/${transactionId}`);
         const transaction = await response.json();
 
-        if (!transaction.success) {
+        if (!transaction || !transaction.success) {
             document.getElementById("paymentStatus").innerText = "Transaction not found.";
             return;
         }
@@ -24,6 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.error(error);
     }
 });
+
 
 // Функция отправки данных карты на сервер
 async function submitPayment() {
@@ -49,10 +51,6 @@ async function submitPayment() {
 
         if (result.success) {
             document.getElementById("paymentStatus").innerText = "Payment successful!";
-            // Перенаправление на страницу с подтверждением
-            setTimeout(() => {
-                window.location.href = `../confirmation.html`;
-            }, 2000);
         } else {
             document.getElementById("paymentStatus").innerText = "Payment failed. Please check your details.";
         }
