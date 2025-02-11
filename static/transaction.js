@@ -70,7 +70,7 @@ async function submitPayment() {
         if (result.success) {
             localStorage.setItem("paymentSuccess", "Your payment was successful!");
 
-            console.log(("Stored in localStorage:", localStorage.getItem("paymentSuccess")))
+            console.log(("Stored in localStorage:" + localStorage.getItem("paymentSuccess")))
             setTimeout(() => {
             window.location.href = "https://awesomeproject1-production.up.railway.app/pokemonsPage";}, 500);
         } else {
