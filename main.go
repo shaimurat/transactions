@@ -293,7 +293,10 @@ func getUserTransactions(c *gin.Context) {
 	if status == "in process" {
 		cursor, err = transactionCollection.Find(context.TODO(), bson.M{"customer.email": email, "status": "in process"})
 	} else {
-		cursor, err = transactionCollection.Find(context.TODO(), bson.M{"customer.email": email})
+		cursor, err = transactionCollection.Find(context.TODO(), bson.M{
+			"customer.email": email,
+			"status":         bson.M{"$in": []string{"ended", "cancelled"}},
+		})
 	}
 	if err != nil {
 		log.Println("Error fetching transactions:", err)
